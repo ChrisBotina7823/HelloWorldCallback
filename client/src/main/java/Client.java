@@ -5,6 +5,7 @@ import com.zeroc.Ice.ObjectPrx;
 import com.zeroc.Ice.Util;
 
 public class Client {
+    public static Scanner sc = new Scanner(System.in);
     public static void main(String[] args) {
         try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "client.cfg")) {
 
@@ -19,11 +20,25 @@ public class Client {
                 ObjectPrx prx = adapter.add(callback, Util.stringToIdentity("callback"));
                 Demo.CallbackPrx callbackPrx = Demo.CallbackPrx.checkedCast(prx);
                 adapter.activate();
-
-                Scanner sc = new Scanner(System.in);
-                System.out.println("Enter your username: ");
+                
+                // Register user
+                System.out.print("(System) Enter your username: ");
                 String username = sc.nextLine();
-                chatManagerPrx.registerUser(username, callbackPrx);
+
+                // Check if username is already taken
+                while (!chatManagerPrx.registerUser(username, callbackPrx)) {
+                    System.out.println("(System) Username already taken. Please enter a different username.");
+                    System.out.print("(System) Enter your username: ");
+                    username = sc.nextLine();
+                }
+
+                // Welcome message
+                System.out.println("(System) Welcome " + username + "!" +
+                        " Type '/list clients' to list all clients, " +
+                        "'/exit' to exit, " +
+                        "'to X: message' to send a message to user X, " +
+                        "and 'BC: message' to broadcast a message." +
+                        "\n---------------CHAT---------------");
 
                 /*
                  * System.out.println("Waiting for response...");
@@ -36,6 +51,7 @@ public class Client {
                  * 
                  */
 
+                /* Old menu 
                 int option = -1;
                 while (option != 0) {
                     System.out.println("Welcome: ");
@@ -66,7 +82,33 @@ public class Client {
                             break;
                     }
                 }
-                communicator.waitForShutdown();
+                */
+                // Obtaining messages
+                while (true) {
+                    String input = sc.nextLine();
+                    if (input.charAt(0) == '/') {
+                        if (input.equals("/list clients")) {
+                            chatManagerPrx.listClients(username);
+                        } else if (input.equals("/exit")) {
+                            communicator.waitForShutdown();
+                            break;
+                        } else {
+                            System.out.println("(System) Error: Invalid command.");
+                        }
+                    } else if (input.contains(":") && input.charAt(0) == 't' && input.charAt(1) == 'o') {
+                        String[] parts = input.split(":");
+                        String destUser = parts[0].trim().substring(3);
+                        String message = parts[1].trim();
+                        chatManagerPrx.sendMessage(message, username, destUser);
+                    } else if (input.charAt(0) == 'B' && input.charAt(1) == 'C' && input.charAt(2) == ':') {
+                        String[] parts = input.split(":");
+                        String message = parts[1].trim();
+                        chatManagerPrx.broadCastMessage(message, username);
+                    } else {
+                        System.out.println("(System) Error: Invalid command.");
+                    }
+                }
+
                 sc.close();
 
             } catch (Exception e) {

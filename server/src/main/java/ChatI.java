@@ -10,15 +10,15 @@ public class ChatI implements Demo.Chat {
     Map<String, CallbackPrx> users = new HashMap<>();
 
     @Override
-    public void registerUser(String username, CallbackPrx callback, Current current) {
+    public boolean registerUser(String username, CallbackPrx callback, Current current) {
         if(!users.containsKey(username)) {
             System.out.println("User " + username + " registered");
+            users.put(username, callback);
+            return true;
         } else {
             System.out.println("User " + username + " already registered");
+            return false;
         }
-        System.out.println(users.size());
-        users.put(username, callback);
-        System.out.println(users.size());
     }
 
     @Override
@@ -26,9 +26,11 @@ public class ChatI implements Demo.Chat {
         System.out.println(users.size());
         CallbackPrx callback = users.get(username);
         StringBuilder sb = new StringBuilder();
-        sb.append("List of clients: ");
+        sb.append("\nList of clients:\n");
+        int cnt = 1;
         for (String user : users.keySet()) {
-            sb.append(user + " ");
+            sb.append("(" + cnt + "): " + user + "\n");
+            cnt++;
         }
         callback.reportResponse(sb.toString());
     }
@@ -37,8 +39,10 @@ public class ChatI implements Demo.Chat {
     public void sendMessage(String s, String fromUser, String destUser, Current current) {
         CallbackPrx destPrx = users.get(destUser);
         CallbackPrx fromPrx = users.get(fromUser);
-        if (destPrx != null) {
+        if (destPrx != null && fromPrx != destPrx) {
             destPrx.reportResponse(fromUser + ": " + s);
+        } else if (fromPrx == destPrx) {
+            fromPrx.reportResponse("You cannot send message to yourself");
         } else {
             fromPrx.reportResponse("User " + destUser + " not found");
         }
@@ -46,14 +50,14 @@ public class ChatI implements Demo.Chat {
 
     @Override
     public void broadCastMessage(String s, String fromUser, Current current) {
-        CallbackPrx fromPrx = users.get(fromUser);
+        // CallbackPrx fromPrx = users.get(fromUser);
         for (String user : users.keySet()) {
             if (!user.equals(fromUser)) {
                 CallbackPrx destPrx = users.get(user);
                 destPrx.reportResponse(fromUser + ": " + s);
             }
         }
-        fromPrx.reportResponse("Broadcast message sent");
+        // fromPrx.reportResponse("Broadcast message sent");
     }
     
 
