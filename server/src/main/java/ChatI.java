@@ -22,6 +22,12 @@ public class ChatI implements Demo.Chat {
     }
 
     @Override
+    public void unRegisterUser(String username, Current current) {
+        users.remove(username);
+        System.out.println("User " + username + " unregistered");
+    }
+
+    @Override
     public void listClients(String username, Current current) {
         System.out.println(users.size());
         CallbackPrx callback = users.get(username);

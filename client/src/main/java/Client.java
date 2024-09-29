@@ -90,7 +90,8 @@ public class Client {
                         if (input.equals("/list clients")) {
                             chatManagerPrx.listClients(username);
                         } else if (input.equals("/exit")) {
-                            communicator.waitForShutdown();
+                            chatManagerPrx.unRegisterUser(username);
+                            System.out.println("(System) Exiting chat...");
                             break;
                         } else {
                             System.out.println("(System) Error: Invalid command.");

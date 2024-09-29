@@ -7,6 +7,7 @@ module Demo
 
     interface Chat {
         bool registerUser(string username, Callback* callback);
+        void unRegisterUser(string username);
         void listClients(string username);
         void sendMessage(string message, string fromUser, string destUser);
         void broadCastMessage(string message, string fromUser);
