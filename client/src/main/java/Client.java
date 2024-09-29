@@ -12,7 +12,6 @@ public class Client {
                     .checkedCast(communicator.propertyToProxy("Chat.Proxy"));
 
             try {
-
                 ObjectAdapter adapter = communicator.createObjectAdapter("Callback");
                 Demo.Callback callback = new CallbackI();
 

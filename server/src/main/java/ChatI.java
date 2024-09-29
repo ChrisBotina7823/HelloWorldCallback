@@ -1,6 +1,8 @@
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.zeroc.Ice.Current;
 
@@ -8,10 +10,11 @@ import Demo.CallbackPrx;
 
 public class ChatI implements Demo.Chat {
     Map<String, CallbackPrx> users = new HashMap<>();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Override
     public void registerUser(String username, CallbackPrx callback, Current current) {
-        if(!users.containsKey(username)) {
+        if (!users.containsKey(username)) {
             System.out.println("User " + username + " registered");
         } else {
             System.out.println("User " + username + " already registered");
@@ -55,14 +58,13 @@ public class ChatI implements Demo.Chat {
         }
         fromPrx.reportResponse("Broadcast message sent");
     }
-    
 
     public void printString(String msg, com.zeroc.Ice.Current current) {
         System.out.println(msg);
     }
 
     public void fact(long n, Demo.CallbackPrx callback, com.zeroc.Ice.Current current) {
-        Thread thread = new Thread(() -> {
+        executorService.submit(() -> {
             BigInteger fact = BigInteger.ONE;
             for (long i = 1; i <= n; i++) {
                 fact = fact.multiply(BigInteger.valueOf(i));
@@ -75,6 +77,5 @@ public class ChatI implements Demo.Chat {
             String response = "Factorial of " + n + " is: " + fact;
             callback.reportResponse(response);
         });
-        thread.start();
     }
 }
