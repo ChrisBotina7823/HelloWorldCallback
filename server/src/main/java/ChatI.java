@@ -28,7 +28,7 @@ public class ChatI implements Demo.Chat {
         StringBuilder sb = new StringBuilder();
         sb.append("List of clients: ");
         for (String user : users.keySet()) {
-            sb.append(user + " ");
+            sb.append(user).append(" ");
         }
         callback.reportResponse(sb.toString());
     }
