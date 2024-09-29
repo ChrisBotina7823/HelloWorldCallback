@@ -1,30 +1,48 @@
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import com.zeroc.Ice.Current;
 
 import Demo.CallbackPrx;
 
 public class ChatI implements Demo.Chat {
+    // Map to store users and their respective callback proxies
     Map<String, CallbackPrx> users = new HashMap<>();
+
+    // Semaphore to control map access
+    Semaphore semaphore = new Semaphore(1);
 
     @Override
     public boolean registerUser(String username, CallbackPrx callback, Current current) {
-        if(!users.containsKey(username)) {
-            System.out.println("User " + username + " registered");
+        try {
+            semaphore.acquire();
+            if (users.containsKey(username)) {
+                return false;
+            }
             users.put(username, callback);
+            System.out.println("User " + username + " registered");
             return true;
-        } else {
-            System.out.println("User " + username + " already registered");
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
+        } finally {
+            semaphore.release();
         }
     }
 
     @Override
     public void unRegisterUser(String username, Current current) {
-        users.remove(username);
-        System.out.println("User " + username + " unregistered");
+        try {
+            semaphore.acquire();
+            users.remove(username);
+            System.out.println("User " + username + " unregistered");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            semaphore.release();
+        }
     }
 
     @Override

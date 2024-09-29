@@ -51,38 +51,6 @@ public class Client {
                  * 
                  */
 
-                /* Old menu 
-                int option = -1;
-                while (option != 0) {
-                    System.out.println("Welcome: ");
-                    System.out.println(("0. Exit"));
-                    System.out.println(("1. List clients"));
-                    System.out.println(("2. Send message"));
-                    System.out.println(("3. Broadcast message"));
-                    option = sc.nextInt();
-                    switch (option) {
-                        case 1:
-                            chatManagerPrx.listClients(username);
-                            break;
-                        case 2:
-                            System.out.println("Enter destination user: ");
-                            String destUser = sc.next();
-                            System.out.println("Enter message: ");
-                            sc.nextLine();
-                            String message = sc.nextLine();
-                            chatManagerPrx.sendMessage(message, username, destUser);
-                            break;
-                        case 3:
-                            System.out.println("Enter message: ");
-                            sc.nextLine();
-                            String broadcastMessage = sc.nextLine();
-                            chatManagerPrx.broadCastMessage(broadcastMessage, username);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                */
                 // Obtaining messages
                 while (true) {
                     String input = sc.nextLine();
@@ -106,7 +74,7 @@ public class Client {
                         String message = parts[1].trim();
                         chatManagerPrx.broadCastMessage(message, username);
                     } else {
-                        System.out.println("(System) Error: Invalid command.");
+                        System.out.println("(System) Error: Invalid input.");
                     }
                 }
 
