@@ -40,11 +40,36 @@ public class ChatI implements Demo.Chat {
     public void sendMessage(String s, String fromUser, String destUser, Current current) {
         CallbackPrx destPrx = users.get(destUser);
         CallbackPrx fromPrx = users.get(fromUser);
-        if (destPrx != null) {
-            destPrx.reportResponse(fromUser + ": " + s);
-        } else {
+        boolean resCommand = detectCommands(s, fromUser, current);
+
+        if (destPrx == null) {
             fromPrx.reportResponse("User " + destUser + " not found");
+            return;
         }
+
+        if (resCommand) {
+            return;
+        } else {
+            destPrx.reportResponse(fromUser + ": " + s);
+        }
+    }
+
+    public boolean detectCommands(String command, String username, Current current) {
+        if (!command.startsWith("!")) {
+            return false;
+        }
+
+        if (command.contains("fact")) {
+            String[] parts = command.split(" ");
+            if (parts.length != 2) {
+                return false;
+            }
+            long n = Long.parseLong(parts[1]);
+            CallbackPrx callback = users.get(username);
+            fact(n, callback, current);
+        }
+
+        return true;
     }
 
     @Override
@@ -69,11 +94,7 @@ public class ChatI implements Demo.Chat {
             for (long i = 1; i <= n; i++) {
                 fact = fact.multiply(BigInteger.valueOf(i));
             }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-                // TODO: handle exception
-            }
+
             String response = "Factorial of " + n + " is: " + fact;
             callback.reportResponse(response);
         });

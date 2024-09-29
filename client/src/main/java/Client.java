@@ -32,7 +32,7 @@ public class Client {
                  * // System.out.println("Factorial of 10 is: " );
                  * System.out.println("Time taken: " + (System.currentTimeMillis() - start) +
                  * "ms");
-                 * 
+                 *
                  */
 
                 int option = -1;
@@ -72,6 +72,5 @@ public class Client {
                 e.printStackTrace();
             }
         }
-
     }
 }
