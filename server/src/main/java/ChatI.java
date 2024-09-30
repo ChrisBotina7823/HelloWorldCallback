@@ -1,5 +1,7 @@
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
@@ -10,19 +12,55 @@ import Demo.CallbackPrx;
 public class ChatI implements Demo.Chat {
     // Map to store users and their respective callback proxies
     Map<String, CallbackPrx> users = new HashMap<>();
+    // Map to store pending messages for each user
+    Map<String, List<String>> pendingMessages = new HashMap<>();
 
     // Semaphore to control map access
     Semaphore semaphore = new Semaphore(1);
+
+    public ChatI() {
+        Thread thread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                    checkConnections();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
 
     @Override
     public boolean registerUser(String username, CallbackPrx callback, Current current) {
         try {
             semaphore.acquire();
+            username = username.trim();
+
             if (users.containsKey(username)) {
                 return false;
             }
-            users.put(username, callback);
-            System.out.println("User " + username + " registered");
+
+            if (pendingMessages.containsKey(username)) {
+                // User is reconnecting, store callback and mark for pending message delivery
+                users.put(username, callback);
+                System.out.println("User " + username + " reconnected");
+
+                // Deliver pending messages
+                List<String> messages = pendingMessages.get(username);
+                if (messages != null) {
+                    callback.reportResponse("(System) Pending messages:");
+                    for (String message : messages) {
+                        callback.reportResponse(message);
+                    }
+                    messages.clear(); // Clear the messages after delivering
+                }
+            } else {
+                users.put(username, callback);
+                pendingMessages.put(username, new ArrayList<>());
+                System.out.println("User " + username + " registered");
+            }
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,25 +106,43 @@ public class ChatI implements Demo.Chat {
         } else if (fromPrx == destPrx) {
             fromPrx.reportResponse("You cannot send message to yourself");
         } else {
-            fromPrx.reportResponse("User " + destUser + " not found");
+            fromPrx.reportResponse("User " + destUser + " is currently offline. Your message will be delivered when they reconnect.");
+            // Store the message in pending messages
+            List<String> messages = pendingMessages.get(destUser);
+            if (messages != null) {
+                messages.add(fromUser + ": " + s);
+            } else {
+                messages = new ArrayList<>();
+                messages.add(fromUser + ": " + s);
+                pendingMessages.put(destUser, messages);
+            }
         }
     }
 
     @Override
     public void broadCastMessage(String s, String fromUser, Current current) {
-        // CallbackPrx fromPrx = users.get(fromUser);
         for (String user : users.keySet()) {
             if (!user.equals(fromUser)) {
                 CallbackPrx destPrx = users.get(user);
                 destPrx.reportResponse(fromUser + ": " + s);
             }
         }
-        // fromPrx.reportResponse("Broadcast message sent");
     }
-    
 
     public void printString(String msg, com.zeroc.Ice.Current current) {
         System.out.println(msg);
+    }
+
+    public void checkConnections() {
+        for (String user : new ArrayList<>(users.keySet())) {
+            CallbackPrx callback = users.get(user);
+            try {
+                callback.ice_ping();
+            } catch (Exception e) {
+                users.remove(user);
+                System.out.println("User " + user + " disconnected");
+            }
+        }
     }
 
     public void fact(long n, Demo.CallbackPrx callback, com.zeroc.Ice.Current current) {

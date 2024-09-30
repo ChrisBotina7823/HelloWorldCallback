@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Scanner;
 
 import com.zeroc.Ice.ObjectAdapter;
@@ -6,9 +8,13 @@ import com.zeroc.Ice.Util;
 
 public class Client {
     public static Scanner sc = new Scanner(System.in);
-    public static void main(String[] args) {
-        try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "client.cfg")) {
+    public static boolean isInterfaceReady = false;
+    public static ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+    public static PrintStream originalOut = System.out;
 
+    public static void main(String[] args) {
+        System.setOut(originalOut);
+        try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "client.cfg")) {
             Demo.ChatPrx chatManagerPrx = Demo.ChatPrx
                     .checkedCast(communicator.propertyToProxy("Chat.Proxy"));
 
@@ -20,7 +26,8 @@ public class Client {
                 ObjectPrx prx = adapter.add(callback, Util.stringToIdentity("callback"));
                 Demo.CallbackPrx callbackPrx = Demo.CallbackPrx.checkedCast(prx);
                 adapter.activate();
-                
+                isInterfaceReady = true;
+
                 // Register user
                 System.out.print("(System) Enter your username: ");
                 String username = sc.nextLine();
@@ -48,11 +55,13 @@ public class Client {
                  * // System.out.println("Factorial of 10 is: " );
                  * System.out.println("Time taken: " + (System.currentTimeMillis() - start) +
                  * "ms");
-                 * 
+                 *
                  */
 
                 // Obtaining messages
                 while (true) {
+                    System.out.print(bufferStream.toString());
+                    bufferStream.reset();
                     String input = sc.nextLine();
                     if (input.charAt(0) == '/') {
                         if (input.equals("/list clients")) {
@@ -78,12 +87,12 @@ public class Client {
                     }
                 }
 
+                //Shut down
+                adapter.destroy();
                 sc.close();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
     }
 }
