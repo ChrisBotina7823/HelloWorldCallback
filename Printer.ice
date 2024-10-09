@@ -13,6 +13,7 @@ module Demo
         void broadCastMessage(string message, string fromUser);
         void printString(string s);
         void fact(long n, Callback* callback);
+        void fib(long n, Callback* callback);
     }
 
 }
