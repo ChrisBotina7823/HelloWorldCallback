@@ -1,8 +1,10 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import com.zeroc.Ice.Current;
@@ -160,5 +162,41 @@ public class ChatI implements Demo.Chat {
             callback.reportResponse(response);
         });
         thread.start();
+    }
+
+    public void fib(long n, Demo.CallbackPrx callback, com.zeroc.Ice.Current current) {
+        if (n <= 0) {
+            callback.reportResponse("0");
+        }
+        StringBuilder output = new StringBuilder();
+        long a = 0, b = 1;
+        // output.append(a).append(" ");
+        if (n < 2) {
+            output.append(n).append(" ");
+        }
+        for (long i = 2; i < n; i++) {
+            long c = a + b;
+            // System.out.println(c);
+            a = b;
+            b = c;
+            if(i == n-1) output.append(c).append(" ");
+        }
+        Set<Long> factors = new HashSet<>();
+        int factorsCount = 0;
+        long i = 2;
+        while (n > 1) {
+            if (n % i == 0) {
+                // factors.add(i);
+                factorsCount++;
+                n /= i;
+            } else {
+                i++;
+            }
+        }
+        for (Long factor : factors) {
+            output.append(factor).append(" ");
+        }
+        output.append(factorsCount);
+        callback.reportResponse(output.toString().trim());
     }
 }

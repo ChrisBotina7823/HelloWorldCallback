@@ -82,6 +82,10 @@ public class Client {
                         String[] parts = input.split(":");
                         String message = parts[1].trim();
                         chatManagerPrx.broadCastMessage(message, username);
+                    } else if(input.startsWith("fib")) {
+                        String[] parts = input.split(" ");
+                        long n = Long.parseLong(parts[1]);
+                        chatManagerPrx.fib(n, callbackPrx);
                     } else {
                         System.out.println("(System) Error: Invalid input.");
                     }
