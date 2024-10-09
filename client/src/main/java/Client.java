@@ -14,7 +14,7 @@ public class Client {
 
     public static void main(String[] args) {
         System.setOut(originalOut);
-        try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "client.cfg")) {
+        try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.client")) {
             Demo.ChatPrx chatManagerPrx = Demo.ChatPrx
                     .checkedCast(communicator.propertyToProxy("Chat.Proxy"));
 
@@ -23,7 +23,7 @@ public class Client {
                 ObjectAdapter adapter = communicator.createObjectAdapter("Callback");
                 Demo.Callback callback = new CallbackI();
 
-                ObjectPrx prx = adapter.add(callback, Util.stringToIdentity("callback"));
+                ObjectPrx prx = adapter.add(callback, Util.stringToIdentity("Callback"));
                 Demo.CallbackPrx callbackPrx = Demo.CallbackPrx.checkedCast(prx);
                 adapter.activate();
                 isInterfaceReady = true;
