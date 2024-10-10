@@ -64,14 +64,28 @@ public class Client {
                     bufferStream.reset();
                     String input = sc.nextLine();
                     if (input.charAt(0) == '/') {
-                        if (input.equals("/list clients")) {
-                            chatManagerPrx.listClients(username);
-                        } else if (input.equals("/exit")) {
-                            chatManagerPrx.unRegisterUser(username);
-                            System.out.println("(System) Exiting chat...");
-                            break;
-                        } else {
-                            System.out.println("(System) Error: Invalid command.");
+                        try {
+                            if (input.equals("/list clients")) {
+                                chatManagerPrx.listClients(username);
+                            } else if (input.equals("/exit")) {
+                                chatManagerPrx.unRegisterUser(username);
+                                System.out.println("(System) Exiting chat...");
+                                break;
+                            } else if (input.startsWith("/fib")) {
+                                String[] parts = input.split(" ");
+                                long n = Long.parseLong(parts[1]);
+                                chatManagerPrx.fib(n, callbackPrx);
+                            } else if (input.startsWith("/listports")) {
+                                String[] parts = input.split(" ");
+                                String ip = parts[1];
+                                chatManagerPrx.openPorts(ip, callbackPrx);
+                            } else if (input.equals("/listifs")) {
+                                chatManagerPrx.networkInterfaces(callbackPrx);
+                            } else {
+                                System.out.println("(System) Error: Invalid command.");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("(System) Error: Invalid command or input.");
                         }
                     } else if (input.contains(":") && input.charAt(0) == 't' && input.charAt(1) == 'o') {
                         String[] parts = input.split(":");
@@ -82,10 +96,8 @@ public class Client {
                         String[] parts = input.split(":");
                         String message = parts[1].trim();
                         chatManagerPrx.broadCastMessage(message, username);
-                    } else if(input.startsWith("fib")) {
-                        String[] parts = input.split(" ");
-                        long n = Long.parseLong(parts[1]);
-                        chatManagerPrx.fib(n, callbackPrx);
+                    } else if (input.charAt(0) == '!') {
+                        chatManagerPrx.executeCommand(input.substring(1), callbackPrx);
                     } else {
                         System.out.println("(System) Error: Invalid input.");
                     }
